@@ -35,10 +35,10 @@ attachInterrupt(digitalPinToInterrupt(GEN_NOISE_BUTTON_PIN), btn_dac_callback, R
 #define SAMPLING_CNT (64800) //3 Min
 ```
 ## How to use
-Just press the button, the RP2040 will record 3 minutues after LED fast blink.
+Just press the button, and the RP2040 will record ADC value for 3 minutues after LED blink (fast).
 
 ``` C++
-if (intr_trig_dac & !timer_en_dac) { // It would be triggered after press the key
+if (intr_trig_dac & !timer_en_dac) { // It would be triggered after press the button
     intr_trig_dac = false;
     timer_en_dac = true;
     rec_main_num = create_new_record(RECORD_ADC_DIR, FLAG_CREATE_NEW_RECORD);
@@ -73,8 +73,8 @@ generate from MATLAB (matlab/iir_60hz.m & matlab/iir_120hz.m)
     * sdcard/b_coef_120.bin
 
 ## SDcard Structural
-Create the RECORD folder for sdcard
-Copy the coefficient file (x_coef_xx.bin) to the root folder
+* Create the RECORD folder for sdcard
+* Copy the coefficient file (x_coef_xx.bin) to the root folder
 
 ```
 SDCard
