@@ -103,12 +103,11 @@ bool write_SD2() {
   double filtered_value;
   if (rd_pos < t_wr_pos) {
     Serial.printf("-");
-    while (rd_pos < t_wr_pos) {
+    for(;rd_pos < t_wr_pos; rd_pos++) {
 //       Serial.println(data_logger[rd_pos++]);
-      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos++]));
+      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos]));
       sprintf(buff, "%d, %f\r\n", data_logger[rd_pos], filtered_value);
       rec_file.write(buff);
-      rd_pos++;
     }
   } 
   .
