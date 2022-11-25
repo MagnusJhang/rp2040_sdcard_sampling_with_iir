@@ -152,7 +152,7 @@ filtered = data(:, 2);
 plot(non_filtered, "displayname", "non-filtered value");
 hold on;
 plot(filtered, "displayname", "filtered value");
-legend on;
+legend;
 hold off;
 
 ```
