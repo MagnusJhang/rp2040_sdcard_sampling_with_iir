@@ -37,7 +37,8 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #define ERROR_CREATE_RECORD_FILE 1
 #define ERROR_WRITE_FILE_FAIL 3
 // =========================ADC_PREF===============================
-#define TIMER_FREQ_HZ 360.0
+#define TIMER_FREQ_HZ (360.0)
+
 #define ADC_BUFF_SIZE (21600)
 #define DEBOUNCE_DELAY 500
 #define SAMPLING_CNT (64800) //3 Min
@@ -51,7 +52,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #define ACTIVATE_LED_PIN D21
 #define ADC_PIN A0
 // ================IIR Filters======================
-typedef double adc_unit;
+typedef int adc_unit;
 
 adc_unit* data_logger;
 
@@ -120,55 +121,37 @@ bool write_SD2() {
   double filtered_value;
   if (rd_pos < t_wr_pos) {
     Serial.printf("-");
-    while (rd_pos < t_wr_pos) {
-//       Serial.println(data_logger[rd_pos++]);
-      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos++]));
+    for (; rd_pos < t_wr_pos; rd_pos++) {
+      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos]));
       sprintf(buff, "%d, %f\r\n", data_logger[rd_pos], filtered_value);
       rec_file.write(buff);
-      rd_pos++;
     }
     
-  } else {
-    Serial.printf("*");
-    while (rd_pos < ADC_BUFF_SIZE) {
-//       Serial.println(data_logger[rd_pos++]);
-      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos++]));
+  } else if(rd_pos > t_wr_pos) {
+    Serial.printf("*\n");
+    for (; rd_pos < ADC_BUFF_SIZE; rd_pos++) {
+      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos]));
       sprintf(buff, "%d, %f\r\n", data_logger[rd_pos], filtered_value);
       rec_file.write(buff);
-      rd_pos++;
     }
     rd_pos = 0;
-    while (rd_pos < t_wr_pos) {
-//      Serial.println(data_logger[rd_pos++]);
-//      sprintf(buff, "%f\r\n", data_logger[rd_pos++]);
-      filtered_value = iir_120->filter(iir_60->filter(data_logger[rd_pos++]));
-      sprintf(buff, "%d, %f\r\n", data_logger[rd_pos], filtered_value);
-      rec_file.write(buff);
-      rd_pos++;
-    }
+  }else{
+     Serial.printf("WRITE ERROR");
   }
-//  rec_file.flush();
   return rec_file.sync();
 }
 
 bool TimerHandler(struct repeating_timer *t)
 {
   if (sample_idx < SAMPLING_CNT) {
-    digitalWrite(INTERRUPT_LED_PIN, !digitalRead(INTERRUPT_LED_PIN));
     sample_idx++;
+    digitalWrite(INTERRUPT_LED_PIN, !digitalRead(INTERRUPT_LED_PIN));
     uint16_t val_a0 = analogRead(ADC_PIN);
-    
-    
-    // data_logger[wr_pos++] = val_a0 >> 4;
-    // data_logger[wr_pos++] = (val_a0 & 0x000f);
-
     data_logger[wr_pos++] = val_a0;
 
-    if (wr_pos == ADC_BUFF_SIZE)
-      wr_pos = 0;
-    //    REG_CHANGE_SHIFT(REG_PIOB_ODSR, 0x03, 26);
+    if (wr_pos == ADC_BUFF_SIZE) wr_pos = 0;
+
   } else {
-    //    Timer3.stop();
     ITimer.stopTimer();
     write_SD2();
     rec_file.close();
