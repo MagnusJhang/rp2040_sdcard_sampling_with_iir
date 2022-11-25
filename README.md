@@ -149,9 +149,9 @@ clc; close all; clear;
 data = readmatrix("REC_00_00.csv");
 non_filtered = data(:, 1);
 filtered = data(:, 2);
-plot(non_filtered, "display_name", "non-filtered value");
+plot(non_filtered, "displayname", "non-filtered value");
 hold on;
-plot(filtered, "display_name", "filtered value");
+plot(filtered, "displayname", "filtered value");
 legend on;
 hold off;
 
